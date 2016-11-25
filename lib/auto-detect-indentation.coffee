@@ -1,11 +1,19 @@
 {CompositeDisposable} = require 'atom'
 IndentationManager = require './indentation-manager'
 
+originalSetTabs = new WeakSet()
+
 module.exports =
   activate: (state) ->
     @disposables = new CompositeDisposable
     @disposables.add atom.workspace.observeTextEditors (editor) =>
       @_handleLoad editor
+
+    @disposables.add atom.workspace.observeActivePaneItem (editor) ->
+      return unless editor?.getBuffer()?
+      indentation = IndentationManager.autoDetectIndentation editor
+      IndentationManager.setIndentation editor, indentation, true
+
     @disposables.add atom.commands.add('atom-text-editor', 'auto-detect-indentation:show-indentation-selector', @createIndentationListView)
 
     @indentationListView = null
